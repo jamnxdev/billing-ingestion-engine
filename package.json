@@ -1,0 +1,16 @@
+{
+  "name": "billing-ingestion-engine",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/ingest"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "typescript": "^5.6.3"
+  }
+}
