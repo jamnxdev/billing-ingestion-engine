@@ -1,11 +1,13 @@
 import Fastify, { type FastifyInstance } from "fastify";
-import { usageEventSchema, type UsageEvent } from "../types/UsageEvent.js";
+import { usageEventSchema, SlidingWindowAggregator, type UsageEvent } from "@billing/aggregator";
 import { DedupStore } from "../dedup/DedupStore.js";
 import { payloadHash } from "../dedup/payloadHash.js";
 
 export interface BuildServerOptions {
   /** Bounded dedup window, in milliseconds. */
   dedupWindowMs: number;
+  /** Aggregation bucket width, in milliseconds. */
+  bucketSizeMs: number;
   /** Injectable clock, so dedup-window tests don't depend on real time. */
   clock?: () => number;
   logger?: boolean;
@@ -17,14 +19,20 @@ export interface BuildServerOptions {
  * in-process via `fastify.inject()` — no real socket, no port conflicts,
  * fully deterministic.
  *
- * Day 1 scope: validate the event shape at the boundary, then run it through
- * the idempotency dedup check. There is deliberately no aggregation or
- * durable log wiring yet — the ingestion API's contract ("accepted" /
- * "duplicate" / rejected-as-conflict) is what Day 1 is proving; Day 2+ adds
- * what happens to an accepted event after this boundary.
+ * Day 2 scope: an accepted (non-duplicate, non-conflicting) event is applied
+ * synchronously, in-request, to the `SlidingWindowAggregator` — deliberately
+ * not queued for later, periodic materialization (a literal reading of the
+ * spec's "aggregator periodically materializes... totals"). Flagged
+ * explicitly in the implementation log as a deviation: synchronous
+ * application means the query API always reflects every accepted event with
+ * no aggregation lag by construction, which is a real, citable design point
+ * for the Day 4/5 "aggregation lag" benchmark, not an oversight. There is
+ * still no durable event log yet (Day 3) — a process restart loses
+ * in-memory aggregate state.
  */
 export function buildServer(options: BuildServerOptions): FastifyInstance {
   const dedupStore = new DedupStore(options.dedupWindowMs, options.clock);
+  const aggregator = new SlidingWindowAggregator({ bucketSizeMs: options.bucketSizeMs });
 
   const app = Fastify({ logger: options.logger ?? false });
 
@@ -40,6 +48,7 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
 
       switch (outcome) {
         case "new":
+          aggregator.record(event);
           reply.code(202);
           return { status: "accepted" };
         case "duplicate":
@@ -52,6 +61,19 @@ export function buildServer(options: BuildServerOptions): FastifyInstance {
             reason: "idempotency_key_conflict",
           };
       }
+    },
+  );
+
+  app.get<{ Params: { tenantId: string }; Querystring: { metric?: string } }>(
+    "/aggregates/:tenantId",
+    async (request) => {
+      const { tenantId } = request.params;
+      const { metric } = request.query;
+
+      if (metric !== undefined) {
+        return { tenantId, totals: { [metric]: aggregator.totalFor(tenantId, metric) } };
+      }
+      return { tenantId, totals: aggregator.totalsForTenant(tenantId) };
     },
   );
 

@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import type { UsageEvent } from "../types/UsageEvent.js";
+import type { UsageEvent } from "@billing/aggregator";
 
 /**
  * Hashes the business fields of an event (everything except the idempotency

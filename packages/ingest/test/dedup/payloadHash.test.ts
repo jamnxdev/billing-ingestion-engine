@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { payloadHash } from "../../src/dedup/payloadHash.js";
-import type { UsageEvent } from "../../src/types/UsageEvent.js";
+import type { UsageEvent } from "@billing/aggregator";
 
 function event(overrides: Partial<UsageEvent> = {}): UsageEvent {
   return {
