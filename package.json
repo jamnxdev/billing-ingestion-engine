@@ -4,7 +4,9 @@
   "version": "0.1.0",
   "workspaces": [
     "packages/aggregator",
-    "packages/ingest"
+    "packages/ingest",
+    "packages/testclient",
+    "packages/bench"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",

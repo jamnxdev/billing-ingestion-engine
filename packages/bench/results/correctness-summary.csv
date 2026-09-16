@@ -1,0 +1,9 @@
+duplicateRate,design,trials,matches,correctnessRate
+0,correct,20,20,1
+0,naive,20,20,1
+0.1,correct,20,20,1
+0.1,naive,20,0,0
+0.5,correct,20,20,1
+0.5,naive,20,0,0
+0.9,correct,20,20,1
+0.9,naive,20,0,0

@@ -1,0 +1,8 @@
+{
+  "dedupWindowMs": 300000,
+  "originalQuantity": 10,
+  "duplicateQuantity": 10,
+  "correctTotalIfWithinWindow": 10,
+  "actualTotal": 20,
+  "duplicateWasRecognizedAsSuch": false
+}
