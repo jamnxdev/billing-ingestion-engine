@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fc from "fast-check";
 import { buildServer } from "../../src/api/server.js";
 import type { UsageEvent } from "@billing/aggregator";
+import { TEST_API_KEYS, GENEROUS_RATE_LIMIT, postEvent } from "../testHelpers.js";
 
 const BUCKET_MS = 60_000;
 
@@ -42,9 +43,14 @@ describe("Out-of-order arrival through the full ingestion HTTP path", () => {
           }));
           const expectedTotal = events.reduce((sum, e) => sum + e.quantity, 0);
 
-          const app = buildServer({ dedupWindowMs: 1000, bucketSizeMs: BUCKET_MS });
+          const app = buildServer({
+            dedupWindowMs: 1000,
+            bucketSizeMs: BUCKET_MS,
+            apiKeys: TEST_API_KEYS,
+            rateLimit: GENEROUS_RATE_LIMIT,
+          });
           for (const event of seededShuffle(events, shuffleSeed)) {
-            const res = await app.inject({ method: "POST", url: "/events", payload: event });
+            const res = await postEvent(app, event);
             expect(res.statusCode).toBe(202);
           }
 
@@ -60,36 +66,37 @@ describe("Out-of-order arrival through the full ingestion HTTP path", () => {
   });
 
   it("a late-arriving retry of an earlier event is still deduplicated correctly, even when many newer events arrived first", async () => {
-    const app = buildServer({ dedupWindowMs: 10_000, bucketSizeMs: BUCKET_MS });
+    const app = buildServer({
+      dedupWindowMs: 10_000,
+      bucketSizeMs: BUCKET_MS,
+      apiKeys: TEST_API_KEYS,
+      rateLimit: GENEROUS_RATE_LIMIT,
+    });
 
-    const original = {
+    const original: UsageEvent = {
       tenantId: "tenant-a",
       idempotencyKey: "key-original",
       metric: "api_calls",
       quantity: 10,
       occurredAtMs: 0,
     };
-    const first = await app.inject({ method: "POST", url: "/events", payload: original });
+    const first = await postEvent(app, original);
     expect(first.statusCode).toBe(202);
 
     // Many newer, unrelated events arrive next.
     for (let i = 1; i <= 20; i++) {
-      await app.inject({
-        method: "POST",
-        url: "/events",
-        payload: {
-          tenantId: "tenant-a",
-          idempotencyKey: `key-${i}`,
-          metric: "api_calls",
-          quantity: 1,
-          occurredAtMs: i * BUCKET_MS,
-        },
+      await postEvent(app, {
+        tenantId: "tenant-a",
+        idempotencyKey: `key-${i}`,
+        metric: "api_calls",
+        quantity: 1,
+        occurredAtMs: i * BUCKET_MS,
       });
     }
 
     // The original event's client retries it late — must be recognized as a duplicate,
     // not double-counted, despite arriving long after 20 other distinct events.
-    const retry = await app.inject({ method: "POST", url: "/events", payload: original });
+    const retry = await postEvent(app, original);
     expect(retry.statusCode).toBe(200);
     expect(retry.json()).toEqual({ status: "duplicate" });
 
