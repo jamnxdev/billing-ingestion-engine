@@ -1,0 +1,45 @@
+name: Bug report
+description: Something doesn't behave the way the docs say it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: check [`docs/DECISIONS.md`](../../docs/DECISIONS.md) and the
+        README's [Known Limitations](../../README.md#known-limitations) — a lot of
+        this project's edge-case behavior is deliberate and documented, not a bug.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: What you expected vs. what actually happened.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps — a `curl` command against `POST /events`/`GET /aggregates`, or a failing test case, is ideal.
+      placeholder: |
+        1. npm run start --workspace=packages/ingest ...
+        2. curl -X POST http://localhost:3000/events ...
+        3. Observed ... expected ...
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Affected package(s)
+      placeholder: "packages/ingest, packages/aggregator, ..."
+  - type: input
+    id: version
+    attributes:
+      label: Node.js version
+      placeholder: "node -v"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit / branch
+      placeholder: git rev-parse HEAD
