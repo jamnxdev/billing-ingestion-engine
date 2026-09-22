@@ -20,7 +20,7 @@ those decisions.
 **Requirements:** Node.js ≥ 20, npm ≥ 10.
 
 ```bash
-git clone https://github.com/jamnxdev/-billing-ingestion-engine.git
+git clone https://github.com/jamnxdev/billing-ingestion-engine.git
 cd billing-ingestion-engine
 npm install
 npm run build --workspaces
@@ -127,5 +127,5 @@ vulnerability, do **not** open a public issue — see [`SECURITY.md`](SECURITY.m
 
 ## Questions
 
-Open a [GitHub Discussion](https://github.com/jamnxdev/-billing-ingestion-engine/discussions)
+Open a [GitHub Discussion](https://github.com/jamnxdev/billing-ingestion-engine/discussions)
 or an issue tagged `question` if discussions aren't enabled on the repo yet.

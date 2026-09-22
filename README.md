@@ -1,6 +1,6 @@
 # Usage-Metering & Billing Ingestion Engine
 
-[![CI](https://github.com/jamnxdev/-billing-ingestion-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/jamnxdev/-billing-ingestion-engine/actions/workflows/ci.yml)
+[![CI](https://github.com/jamnxdev/billing-ingestion-engine/actions/workflows/ci.yml/badge.svg)](https://github.com/jamnxdev/billing-ingestion-engine/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D20-brightgreen)](package.json)
 [![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.base.json)
@@ -67,7 +67,7 @@ handled — and tested.
 **Requirements:** Node.js ≥ 20, npm ≥ 10.
 
 ```bash
-git clone https://github.com/jamnxdev/-billing-ingestion-engine.git
+git clone https://github.com/jamnxdev/billing-ingestion-engine.git
 cd billing-ingestion-engine
 npm install
 npm run build --workspaces
